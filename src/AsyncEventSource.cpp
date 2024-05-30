@@ -186,7 +186,15 @@ void AsyncEventSourceClient::_queueMessage(AsyncEventSourceMessage *dataMessage)
     return;
   }
   if(_messageQueue.length() >= SSE_MAX_QUEUED_MESSAGES){
-      ets_printf("ERROR: Too many messages queued\n");
+     #ifdef ESP_ARDUINO_VERSION_MAJOR
+        #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+                     // Code for version 3.x
+          log_e("ERROR: Too many messages queued\n");
+        #else
+                    // Code for version 2.x
+	      ets_printf("ERROR: Too many messages queued\n");
+        #endif
+      #endif	  
       delete dataMessage;
   } else {
       _messageQueue.add(dataMessage);
