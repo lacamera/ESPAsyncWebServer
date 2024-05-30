@@ -69,16 +69,28 @@ static bool getMD5(uint8_t * data, uint16_t len, char * output){//33 bytes or mo
   if(_buf == NULL)
     return false;
   memset(_buf, 0x00, 16);
-#ifdef ESP32
-  mbedtls_md5_init(&_ctx);
-  mbedtls_md5_starts_ret(&_ctx);
-  mbedtls_md5_update_ret(&_ctx, data, len);
-  mbedtls_md5_finish_ret(&_ctx, _buf);
-#else
-  MD5Init(&_ctx);
-  MD5Update(&_ctx, data, len);
-  MD5Final(_buf, &_ctx);
-#endif
+  #ifdef ESP_ARDUINO_VERSION_MAJOR
+     #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+      // Code for version 3.x
+     mbedtls_md5_init(&_ctx);
+     mbedtls_md5_starts(&_ctx);
+     mbedtls_md5_update(&_ctx, data, len);
+     mbedtls_md5_finish(&_ctx, _buf);
+     #else
+      // Code for version 2.x
+     #ifdef ESP32
+        mbedtls_md5_init(&_ctx);
+        mbedtls_md5_starts_ret(&_ctx);
+        mbedtls_md5_update_ret(&_ctx, data, len);
+        mbedtls_md5_finish_ret(&_ctx, _buf);
+     #else
+        MD5Init(&_ctx);
+        MD5Update(&_ctx, data, len);
+        MD5Final(_buf, &_ctx);
+      #endif
+  #endif
+  #endif
+
   for(i = 0; i < 16; i++) {
     sprintf(output + (i * 2), "%02x", _buf[i]);
   }
